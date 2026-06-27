@@ -3,11 +3,34 @@
 
 const Version = '2024-NaderVPN-2.0.0';
 
-// آدرس صفحات استاتیک - حتماً تنظیم کنید!
-// مثلاً: https://nadervpn.pages.dev
+// آدرس صفحات استاتیک
 const getPagesURL = (path) => {
-	const staticURL = globalThis.PAGES_STATIC || 'https://naderuser.github.io/nadervpn';
+	const staticURL = typeof PAGES_STATIC !== 'undefined' ? PAGES_STATIC : 'https://naderuser.github.io/nadervpn';
 	return `${staticURL}${path}`;
+};
+
+// KV Helper - با امنیت بالا
+const KV = {
+	get: async (env, key, fallback = null) => {
+		try {
+			if (!env?.KV) return fallback;
+			return await env.KV.get(key) || fallback;
+		} catch { return fallback; }
+	},
+	put: async (env, key, value) => {
+		try {
+			if (!env?.KV) return false;
+			await env.KV.put(key, value);
+			return true;
+		} catch (e) { console.error('KV put error:', e.message); return false; }
+	},
+	del: async (env, key) => {
+		try {
+			if (!env?.KV) return false;
+			await env.KV.delete(key);
+			return true;
+		} catch { return false; }
+	}
 };
 
 let config_JSON, 反代IP = '', 启用SOCKS5反代 = null, 启用SOCKS5全局反代 = false, 我的SOCKS5账号 = '', parsedSocks5Address = {};
@@ -137,10 +160,8 @@ export default {
 					
 					// خواندن لاگ از KV
 					if (访问路径 === 'admin/log.json') {
-						let logs = [];
-						if (env.KV) {
-							try { logs = JSON.parse(await env.KV.get('log.json') || '[]'); } catch {}
-						}
+						const logsStr = await KV.get(env, 'log.json', '[]');
+						const logs = JSON.parse(logsStr);
 						return new Response(JSON.stringify(logs, null, 2), { headers: { 'Content-Type': 'application/json' } });
 					}
 					
@@ -170,13 +191,11 @@ export default {
 								};
 								
 								// ذخیره در KV
-								if (env.KV) {
-									let config = {};
-									try { config = JSON.parse(await env.KV.get('config.json') || '{}'); } catch {}
-									if (!config.CF) config.CF = {};
-									config.CF.Usage = response;
-									await env.KV.put('config.json', JSON.stringify(config, null, 2));
-								}
+								const configStr = await KV.get(env, 'config.json', '{}');
+								let config = JSON.parse(configStr);
+								if (!config.CF) config.CF = {};
+								config.CF.Usage = response;
+								await KV.put(env, 'config.json', JSON.stringify(config, null, 2));
 								
 								return new Response(JSON.stringify(response), { headers: { 'Content-Type': 'application/json' } });
 							}
@@ -186,10 +205,8 @@ export default {
 					
 					// ریست تنظیمات
 					if (访问路径 === 'admin/init') {
-						if (env.KV) {
-							await env.KV.delete('config.json');
-							await env.KV.delete('ADD.txt');
-						}
+						await KV.del(env, 'config.json');
+						await KV.del(env, 'ADD.txt');
 						return new Response(JSON.stringify({ success: true, message: '配置已重置' }), { headers: { 'Content-Type': 'application/json' } });
 					}
 					
@@ -201,19 +218,15 @@ export default {
 								if (!newConfig.UUID || !newConfig.HOST) {
 									return new Response(JSON.stringify({ error: '配置不完整' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 								}
-								if (env.KV) {
-									await env.KV.put('config.json', JSON.stringify(newConfig, null, 2));
-								}
+								await KV.put(env, 'config.json', JSON.stringify(newConfig, null, 2));
 								return new Response(JSON.stringify({ success: true, message: '配置已保存到KV' }), { headers: { 'Content-Type': 'application/json' } });
 							} catch (e) {
 								return new Response(JSON.stringify({ error: '保存失败: ' + e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
 							}
 						}
 						// خواندن از KV
-						let config = { ...默认配置 };
-						if (env.KV) {
-							try { config = JSON.parse(await env.KV.get('config.json') || '{}'); } catch {}
-						}
+						const savedConfigStr = await KV.get(env, 'config.json', null);
+						const config = savedConfigStr ? JSON.parse(savedConfigStr) : { ...默认配置 };
 						if (!config.Version) config.Version = Version;
 						return new Response(JSON.stringify(config, null, 2), { headers: { 'Content-Type': 'application/json' } });
 					}
@@ -223,9 +236,7 @@ export default {
 						if (request.method === 'POST') {
 							try {
 								const CF_JSON = await request.json();
-								if (env.KV) {
-									await env.KV.put('cf.json', JSON.stringify(CF_JSON, null, 2));
-								}
+								await KV.put(env, 'cf.json', JSON.stringify(CF_JSON, null, 2));
 								return new Response(JSON.stringify({ success: true, message: 'CF配置已保存' }), { headers: { 'Content-Type': 'application/json' } });
 							} catch (e) {
 								return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
@@ -242,18 +253,14 @@ export default {
 								if (!TG_JSON.BotToken || !TG_JSON.ChatID) {
 									return new Response(JSON.stringify({ error: '配置不完整' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 								}
-								if (env.KV) {
-									await env.KV.put('tg.json', JSON.stringify(TG_JSON, null, 2));
-								}
+								await KV.put(env, 'tg.json', JSON.stringify(TG_JSON, null, 2));
 								return new Response(JSON.stringify({ success: true, message: 'TG配置已保存' }), { headers: { 'Content-Type': 'application/json' } });
 							} catch (e) {
 								return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
 							}
 						}
-						let tg = { Enabled: false, BotToken: '', ChatID: '' };
-						if (env.KV) {
-							try { tg = JSON.parse(await env.KV.get('tg.json') || '{}'); } catch {}
-						}
+						const tgStr = await KV.get(env, 'tg.json', null);
+						const tg = tgStr ? JSON.parse(tgStr) : { Enabled: false, BotToken: '', ChatID: '' };
 						return new Response(JSON.stringify(tg), { headers: { 'Content-Type': 'application/json' } });
 					}
 					
@@ -262,18 +269,13 @@ export default {
 						if (request.method === 'POST') {
 							try {
 								const customIPs = await request.text();
-								if (env.KV) {
-									await env.KV.put('ADD.txt', customIPs);
-								}
+								await KV.put(env, 'ADD.txt', customIPs);
 								return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
 							} catch (e) {
 								return new Response(JSON.stringify({ error: e.message }), { status: 500 });
 							}
 						}
-						let ipList = 'null';
-						if (env.KV) {
-							ipList = await env.KV.get('ADD.txt') || 'null';
-						}
+						const ipList = await KV.get(env, 'ADD.txt', 'null');
 						return new Response(ipList, { headers: { 'Content-Type': 'text/plain', 'asn': request.cf.asn } });
 					}
 					
@@ -337,34 +339,22 @@ export default {
 async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重置配置 = false) {
 	let config = { ...默认配置 };
 	
-	if (env.KV && !重置配置) {
-		try {
-			const savedConfig = await env.KV.get('config.json');
-			if (savedConfig) {
-				config = JSON.parse(savedConfig);
-			}
-		} catch (e) {
-			console.error('读取KV配置失败:', e);
+	if (!重置配置) {
+		const savedConfigStr = await KV.get(env, 'config.json', null);
+		if (savedConfigStr) {
+			try { config = JSON.parse(savedConfigStr); } catch {}
 		}
 	}
 	
-	if (!config.UUID) {
-		config.UUID = userID;
-	}
-	if (!config.HOST) {
-		config.HOST = [hostname];
-	}
-	if (!config.Version) {
-		config.Version = Version;
-	}
+	if (!config.UUID) config.UUID = userID;
+	if (!config.HOST) config.HOST = [hostname];
+	if (!config.Version) config.Version = Version;
 	
 	return config;
 }
 
 async function 保存config_JSON(env, config) {
-	if (env.KV) {
-		await env.KV.put('config.json', JSON.stringify(config, null, 2));
-	}
+	await KV.put(env, 'config.json', JSON.stringify(config, null, 2));
 }
 
 // ========================================
@@ -397,15 +387,14 @@ async function 请求日志记录(env, request, 访问IP, 请求类型 = "Get_SU
 		ua: request.headers.get('User-Agent') || 'null'
 	};
 	
-	if (env.KV) {
-		try {
-			let logs = JSON.parse(await env.KV.get('log.json') || '[]');
-			logs.unshift(日志条目);
-			if (logs.length > 100) logs = logs.slice(0, 100);
-			await env.KV.put('log.json', JSON.stringify(logs));
-		} catch (e) {
-			console.error('日志写入失败:', e);
-		}
+	const logsStr = await KV.get(env, 'log.json', '[]');
+	try {
+		let logs = JSON.parse(logsStr);
+		logs.unshift(日志条目);
+		if (logs.length > 100) logs = logs.slice(0, 100);
+		await KV.put(env, 'log.json', JSON.stringify(logs));
+	} catch (e) {
+		console.error('日志写入失败:', e);
 	}
 }
 
