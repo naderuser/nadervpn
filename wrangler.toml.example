@@ -1,0 +1,31 @@
+name = "nadervpn-worker"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# رمز عبور پنل مدیریت - حتماً تغییر دهید!
+ADMIN = "your-secure-password-here"
+
+# کلید رمزگذاری - حتماً تغییر دهید!
+KEY = "your-encryption-key-here"
+
+# دامنه Worker
+HOST = "your-worker.your-subdomain.workers.dev"
+
+# فعال‌سازی دیباگ (اختیاری)
+# DEBUG = "true"
+
+# فعال‌سازی اشتراک بهینه (اختیاری)
+# BEST_SUB = "true"
+
+# تعداد TCP کانکشن همزمان (اختیاری)
+# TCP并发拨号数 = "2"
+
+[[kv_namespaces]]
+binding = "NADER_KV"
+id = "your-kv-namespace-id"
+
+# اگر از R2 برای ذخیره لاگ استفاده می‌کنید:
+# [[r2_buckets]]
+# binding = "NADER_R2"
+# bucket_name = "nadervpn-logs"

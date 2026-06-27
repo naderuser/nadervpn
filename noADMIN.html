@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خطا | NaderVPN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #f1f1f1;
+            padding: 20px;
+        }
+        .error-container {
+            text-align: center;
+            max-width: 500px;
+        }
+        .error-icon {
+            font-size: 5rem;
+            color: #e94560;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        .code-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            direction: ltr;
+            text-align: left;
+            font-family: monospace;
+            margin-bottom: 30px;
+        }
+        .code-box code {
+            color: #00d26a;
+        }
+        a {
+            display: inline-block;
+            padding: 14px 30px;
+            background: #e94560;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        a:hover {
+            background: #c73e54;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">⚠️</div>
+        <h1>NaderVPN</h1>
+        <p>پنل مدیریت فعال نیست.<br>متغیر محیطی ADMIN در تنظیمات Worker تنظیم نشده است.</p>
+        
+        <div class="code-box">
+            <code>Wrangler.toml:</code><br><br>
+            vars = {<br>
+            &nbsp;&nbsp;ADMIN = "your-password"<br>
+            }
+        </div>
+        
+        <a href="/">بازگشت به صفحه اصلی</a>
+    </div>
+</body>
+</html>

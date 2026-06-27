@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت | NaderVPN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e94560;
+            --primary-dark: #c73e54;
+            --secondary: #533483;
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --text-light: #f1f1f1;
+            --text-muted: #a0a0a0;
+            --success: #00d26a;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--bg-card);
+            padding: 20px;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .sidebar.collapsed { transform: translateX(100%); }
+        .sidebar-header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .sidebar-header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sidebar-header p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(233, 69, 96, 0.15);
+            color: var(--primary);
+        }
+        .nav-item i { width: 24px; margin-left: 12px; font-size: 1.1rem; }
+        .main-content {
+            margin-right: 260px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .header h2 { font-size: 1.8rem; }
+        .header-actions { display: flex; gap: 10px; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .card-header h3 { font-size: 1.2rem; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.08);
+        }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            display: inline-block;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+        .slider:before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            right: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        input:checked + .slider { background: var(--primary); }
+        input:checked + .slider:before { transform: translateX(-24px); }
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card), rgba(233, 69, 96, 0.1));
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .stat-card i { font-size: 2rem; color: var(--primary); margin-bottom: 10px; }
+        .stat-card .stat-value { font-size: 2rem; font-weight: 700; }
+        .stat-card .stat-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 5px; }
+        .node-list { display: flex; flex-direction: column; gap: 12px; }
+        .node-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .node-info { display: flex; align-items: center; gap: 12px; }
+        .node-status { width: 10px; height: 10px; border-radius: 50%; }
+        .status-online { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .status-offline { background: var(--danger); }
+        .node-actions { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+        .subscription-links { display: flex; flex-direction: column; gap: 12px; }
+        .sub-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            margin-right: 10px;
+            font-family: inherit;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            padding: 16px 24px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.95rem;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+        .toast-success { background: var(--success); }
+        .toast-error { background: var(--danger); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .code-input {
+            font-family: monospace;
+            direction: ltr;
+            text-align: left;
+        }
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 280px;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-right: 0; padding: 20px; }
+            .menu-toggle { display: block; }
+            .sidebar.collapsed + .menu-toggle { right: 20px; }
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .overlay.active { display: block; }
+        textarea { min-height: 120px; resize: vertical; }
+        .save-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: rgba(0,210,106,0.2);
+            color: var(--success);
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>NaderVPN</h1>
+            <p>پنل مدیریت</p>
+        </div>
+        <nav>
+            <a class="nav-item active" data-tab="dashboard"><i class="fas fa-home"></i> داشبورد</a>
+            <a class="nav-item" data-tab="config"><i class="fas fa-cog"></i> تنظیمات اصلی</a>
+            <a class="nav-item" data-tab="nodes"><i class="fas fa-server"></i> مدیریت نودها</a>
+            <a class="nav-item" data-tab="subscription"><i class="fas fa-link"></i> اشتراک</a>
+            <a class="nav-item" data-tab="cf"><i class="fas fa-cloud"></i> کلادفلر</a>
+            <a class="nav-item" data-tab="telegram"><i class="fab fa-telegram"></i> تلگرام</a>
+            <a class="nav-item" data-tab="advance"><i class="fas fa-sliders-h"></i> تنظیمات پیشرفته</a>
+            <a class="nav-item" data-tab="logs"><i class="fas fa-history"></i> لاگ‌ها</a>
+        </nav>
+        <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a class="nav-item" href="/logout"><i class="fas fa-sign-out-alt"></i> خروج</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- Dashboard Tab -->
+        <div class="tab-content active" id="tab-dashboard">
+            <div class="header">
+                <h2><i class="fas fa-home"></i> داشبورد</h2>
+                <div class="header-actions">
+                    <span class="save-indicator" id="saveIndicator"><i class="fas fa-check-circle"></i> ذخیره شده</span>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-server"></i>
+                    <div class="stat-value" id="statNodes">-</div>
+                    <div class="stat-label">تعداد نودها</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <div class="stat-value" id="statUsers">-</div>
+                    <div class="stat-label">کاربران</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <div class="stat-value" id="statUpload">-</div>
+                    <div class="stat-label">آپلود (GB)</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-cloud-download-alt"></i>
+                    <div class="stat-value" id="statDownload">-</div>
+                    <div class="stat-label">دانلود (GB)</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> اطلاعات سرویس</h3>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>شناسه کاربر (UUID)</label>
+                        <input type="text" id="dashUUID" readonly class="code-input">
+                    </div>
+                    <div class="form-group">
+                        <label>آدرس ساب</label>
+                        <input type="text" id="dashSubURL" readonly class="code-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>نسخه Worker</label>
+                        <input type="text" id="dashVersion" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>وضعیت</label>
+                        <input type="text" id="dashStatus" value="فعال" readonly style="color: var(--success);">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Config Tab -->
+        <div class="tab-content" id="tab-config">
+            <div class="header">
+                <h2><i class="fas fa-cog"></i> تنظیمات اصلی</h2>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="resetConfig()"><i class="fas fa-refresh"></i> بازنشانی</button>
+                    <button class="btn btn-primary" onclick="saveConfig()"><i class="fas fa-save"></i> ذخیره</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-key"></i> اطلاعات اتصال</h3></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>UUID</label>
+                        <input type="text" id="configUUID" class="code-input" placeholder="شناسه کاربر">
+                    </div>
+                    <div class="form-group">
+                        <label>HOST (دامنه)</label>
+                        <input type="text" id="configHOST" class="code-input" placeholder="example.com">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-shield-alt"></i> پروتکل و امنیت</h3></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>نوع پروتکل</label>
+                        <select id="configProtocol">
+                            <option value="ss">Shadowsocks</option>
+                            <option value="trojan">Trojan</option>
+                            <option value="vmess">VMess</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>نوع TLS</label>
+                        <select id="configTLS">
+                            <option value="reality">Reality</option>
+                            <option value="utls">uTLS</option>
+                            <option value="none">بدون TLS</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>SNI</label>
+                        <input type="text" id="configSNI" class="code-input" placeholder="sni.example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>FallBack SNI</label>
+                        <input type="text" id="configFallbackSNI" class="code-input" placeholder="fallback.sni.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>کلید عمومی (Public Key)</label>
+                    <input type="text" id="configPublicKey" class="code-input" placeholder="کلید عمومی">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-network-wired"></i> شبکه</h3></div>
+                <div class="form-group">
+                    <label>مسیر (Path)</label>
+                    <input type="text" id="configPath" class="code-input" placeholder="/proxy">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>پورت محلی</label>
+                        <input type="number" id="configLocalPort" value="8000">
+                    </div>
+                    <div class="form-group">
+                        <label>Mux Max Stream</label>
+                        <input type="number" id="configMuxStream" value="4">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nodes Tab -->
+        <div class="tab-content" id="tab-nodes">
+            <div class="header">
+                <h2><i class="fas fa-server"></i> مدیریت نودها</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="addNode()"><i class="fas fa-plus"></i> افزودن نود</button>
+                    <button class="btn btn-outline" onclick="loadNodes()"><i class="fas fa-sync"></i> بروزرسانی</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-list"></i> لیست نودها</h3></div>
+                <div class="node-list" id="nodeList">
+                    <div class="node-item">
+                        <div class="node-info">
+                            <span class="node-status status-offline"></span>
+                            <span>هنوز نودی اضافه نشده</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-edit"></i> ویرایش/افزودن نود</h3></div>
+                <div class="form-group">
+                    <label>آدرس نود</label>
+                    <input type="text" id="nodeAddress" class="code-input" placeholder="server.example.com">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>پورت</label>
+                        <input type="number" id="nodePort" placeholder="443">
+                    </div>
+                    <div class="form-group">
+                        <label>یادداشت</label>
+                        <input type="text" id="nodeRemark" placeholder="نام نود">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>توضیحات اضافی</label>
+                    <textarea id="nodeExtra" placeholder="تنظیمات اضافی..."></textarea>
+                </div>
+                <button class="btn btn-success" onclick="saveNode()"><i class="fas fa-save"></i> ذخیره نود</button>
+            </div>
+        </div>
+
+        <!-- Subscription Tab -->
+        <div class="tab-content" id="tab-subscription">
+            <div class="header">
+                <h2><i class="fas fa-link"></i> مدیریت اشتراک</h2>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-copy"></i> لینک اشتراک</h3></div>
+                <div class="subscription-links">
+                    <div class="sub-link">
+                        <span id="subLinkDefault">-</span>
+                        <div>
+                            <button class="copy-btn" onclick="copyToClipboard('subLinkDefault')"><i class="fas fa-copy"></i> کپی</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-file-code"></i> لینک فرمت‌های مختلف</h3></div>
+                <div class="subscription-links">
+                    <div class="sub-link">
+                        <span id="subLinkClash">-</span>
+                        <button class="copy-btn" onclick="copyToClipboard('subLinkClash')"><i class="fas fa-copy"></i> Clash</button>
+                    </div>
+                    <div class="sub-link">
+                        <span id="subLinkSingbox">-</span>
+                        <button class="copy-btn" onclick="copyToClipboard('subLinkSingbox')"><i class="fas fa-copy"></i> Sing-box</button>
+                    </div>
+                    <div class="sub-link">
+                        <span id="subLinkSurge">-</span>
+                        <button class="copy-btn" onclick="copyToClipboard('subLinkSurge')"><i class="fas fa-copy"></i> Surge</button>
+                    </div>
+                    <div class="sub-link">
+                        <span id="subLinkBase64">-</span>
+                        <button class="copy-btn" onclick="copyToClipboard('subLinkBase64')"><i class="fas fa-copy"></i> Base64</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-cog"></i> تنظیمات اشتراک</h3></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>نام اشتراک</label>
+                        <input type="text" id="subName" placeholder="My Subscription">
+                    </div>
+                    <div class="form-group">
+                        <label>زمان بروزرسانی (ساعت)</label>
+                        <input type="number" id="subUpdateTime" value="12">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>اشتراک خصوصی</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="subPrivate">
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cloudflare Tab -->
+        <div class="tab-content" id="tab-cf">
+            <div class="header">
+                <h2><i class="fas fa-cloud"></i> تنظیمات کلادفلر</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="saveCF()"><i class="fas fa-save"></i> ذخیره</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-rocket"></i> عملکرد</h3></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>TCP并发拨号</label>
+                        <input type="number" id="cfTcpDial" value="2" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label>الگوی ساب‌دامنه</label>
+                        <input type="text" id="cfSubdomain" class="code-input" placeholder="worker">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-globe"></i> IP های CF</h3></div>
+                <div class="form-group">
+                    <label>IP های برتر کلادفلر (یکی در هر خط)</label>
+                    <textarea id="cfBestIP" class="code-input" placeholder="162.159.192.10&#10;172.64.147.20"></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-tachometer-alt"></i> اطلاعات مصرف</h3></div>
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <i class="fas fa-chart-bar"></i>
+                        <div class="stat-value" id="cfPagesUsed">-</div>
+                        <div class="stat-label">Pages استفاده شده</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-bolt"></i>
+                        <div class="stat-value" id="cfWorkersUsed">-</div>
+                        <div class="stat-label">Workers استفاده شده</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-database"></i>
+                        <div class="stat-value" id="cfStorageUsed">-</div>
+                        <div class="stat-label">Storage (MB)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Telegram Tab -->
+        <div class="tab-content" id="tab-telegram">
+            <div class="header">
+                <h2><i class="fab fa-telegram"></i> تنظیمات تلگرام</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="saveTelegram()"><i class="fas fa-save"></i> ذخیره</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-robot"></i> ربات تلگرام</h3></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Bot Token</label>
+                        <input type="text" id="tgBotToken" class="code-input" placeholder="123456:ABC-DEF...">
+                    </div>
+                    <div class="form-group">
+                        <label>Chat ID</label>
+                        <input type="text" id="tgChatID" class="code-input" placeholder="123456789">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>فعال‌سازی ربات</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tgEnabled">
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-bell"></i> اعلان‌ها</h3></div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>اعلان ورود کاربر</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tgNotifyLogin" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>اعلان مصرف ترافیک</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tgNotifyTraffic" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Tab -->
+        <div class="tab-content" id="tab-advance">
+            <div class="header">
+                <h2><i class="fas fa-sliders-h"></i> تنظیمات پیشرفته</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="saveAdvanced()"><i class="fas fa-save"></i> ذخیره</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-tls"></i> TLS تنظیمات</h3></div>
+                <div class="form-group">
+                    <label>TLS Fragment</label>
+                    <select id="tlsFragment">
+                        <option value="">غیرفعال</option>
+                        <option value="Shadowrocket">Shadowrocket</option>
+                        <option value="Happ">Happ</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <span>0-RTT</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enable0RTT">
+                                <span class="slider"></span>
+                            </label>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <span>SOCKS5 پروکسی</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableSocks5">
+                                <span class="slider"></span>
+                            </label>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-filter"></i> فیلتر و محدودیت</h3></div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>مسدود کردن Google</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="blockGoogle">
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>مسدود کردن Facebook</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="blockFacebook">
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div class="tab-content" id="tab-logs">
+            <div class="header">
+                <h2><i class="fas fa-history"></i> لاگ‌ها</h2>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="loadLogs()"><i class="fas fa-sync"></i> بروزرسانی</button>
+                    <button class="btn btn-danger" onclick="clearLogs()"><i class="fas fa-trash"></i> پاک کردن</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-list"></i> لاگ فعالیت‌ها</h3></div>
+                <div style="background: #0d0d1a; border-radius: 10px; padding: 15px; max-height: 500px; overflow-y: auto;">
+                    <pre id="logContent" style="font-family: monospace; font-size: 0.85rem; color: #a0a0a0; white-space: pre-wrap;">در حال بارگذاری...</pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global state
+        let config = {};
+        let nodes = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initNavigation();
+            loadConfig();
+        });
+        
+        function initNavigation() {
+            document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tab = item.dataset.tab;
+                    showTab(tab);
+                });
+            });
+        }
+        
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabId)?.classList.add('active');
+            document.querySelector(`.nav-item[data-tab="${tabId}"]`)?.classList.add('active');
+            
+            // Load data for specific tabs
+            if (tabId === 'dashboard') loadDashboard();
+            if (tabId === 'subscription') loadSubscription();
+            if (tabId === 'cf') loadCFInfo();
+            if (tabId === 'logs') loadLogs();
+        }
+        
+        async function loadConfig() {
+            try {
+                const res = await fetch('/admin/config.json');
+                config = await res.json();
+                applyConfigToForms();
+                loadDashboard();
+            } catch (err) {
+                showToast('خطا در بارگذاری تنظیمات', 'error');
+            }
+        }
+        
+        function applyConfigToForms() {
+            document.getElementById('configUUID').value = config.UUID || '';
+            document.getElementById('configHOST').value = (config.HOST && config.HOST[0]) || window.location.hostname;
+            document.getElementById('configProtocol').value = config.协议类型 || 'ss';
+            document.getElementById('configTLS').value = config.TLS类型 || 'reality';
+            document.getElementById('configSNI').value = config.SNI || '';
+            document.getElementById('configFallbackSNI').value = config.FallBack || '';
+            document.getElementById('configPublicKey').value = config.公钥 || '';
+            document.getElementById('configPath').value = config.路径 || '/proxy';
+            document.getElementById('subName').value = config.优选订阅生成?.SUBNAME || 'NaderVPN';
+            document.getElementById('subUpdateTime').value = config.优选订阅生成?.SUBUpdateTime || 12;
+            nodes = config.节点 || [];
+            renderNodes();
+        }
+        
+        function loadDashboard() {
+            const uuid = config.UUID || document.getElementById('configUUID')?.value || '-';
+            document.getElementById('dashUUID').value = uuid;
+            document.getElementById('dashSubURL').value = window.location.origin + '/sub';
+            document.getElementById('dashVersion').value = config.Version || '-';
+            document.getElementById('statNodes').textContent = nodes.length || 0;
+            
+            // Load CF usage
+            fetch('/admin/getCloudflareUsage').then(r => r.json()).then(data => {
+                if (data.success) {
+                    document.getElementById('statUpload').textContent = ((data.workers || 0) / 1024).toFixed(2);
+                    document.getElementById('statDownload').textContent = ((data.pages || 0) / 1024).toFixed(2);
+                }
+            }).catch(() => {});
+        }
+        
+        function loadSubscription() {
+            const baseURL = window.location.origin;
+            document.getElementById('subLinkDefault').textContent = baseURL + '/sub';
+            document.getElementById('subLinkClash').textContent = baseURL + '/sub?target=clash';
+            document.getElementById('subLinkSingbox').textContent = baseURL + '/sub?target=singbox';
+            document.getElementById('subLinkSurge').textContent = baseURL + '/sub?target=surge';
+            document.getElementById('subLinkBase64').textContent = baseURL + '/sub?b64';
+        }
+        
+        function loadCFInfo() {
+            fetch('/admin/getCloudflareUsage').then(r => r.json()).then(data => {
+                if (data.success) {
+                    document.getElementById('cfPagesUsed').textContent = (data.pages / 1024).toFixed(2) + ' MB';
+                    document.getElementById('cfWorkersUsed').textContent = (data.workers / 1024).toFixed(2) + ' MB';
+                }
+            }).catch(() => {});
+            
+            fetch('/admin/cf.json').then(r => r.json()).then(data => {
+                document.getElementById('cfBestIP').value = (config.CF?.BestIP || []).join('\n');
+            }).catch(() => {});
+        }
+        
+        function loadLogs() {
+            document.getElementById('logContent').textContent = 'در حال بارگذاری...';
+            fetch('/admin/log.json').then(r => r.json()).then(data => {
+                document.getElementById('logContent').textContent = JSON.stringify(data, null, 2);
+            }).catch(() => {
+                document.getElementById('logContent').textContent = 'لاگی موجود نیست';
+            });
+        }
+        
+        function clearLogs() {
+            if (confirm('آیا مطمئن هستید؟')) {
+                showToast('در حال پاک کردن...', 'success');
+            }
+        }
+        
+        function renderNodes() {
+            const list = document.getElementById('nodeList');
+            if (nodes.length === 0) {
+                list.innerHTML = '<div class="node-item"><div class="node-info"><span class="node-status status-offline"></span><span>هنوز نودی اضافه نشده</span></div></div>';
+                return;
+            }
+            list.innerHTML = nodes.map((node, i) => `
+                <div class="node-item">
+                    <div class="node-info">
+                        <span class="node-status status-online"></span>
+                        <span>${node.remark || node.address}</span>
+                    </div>
+                    <div class="node-actions">
+                        <button class="btn btn-sm btn-outline" onclick="editNode(${i})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteNode(${i})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function addNode() {
+            document.getElementById('nodeAddress').value = '';
+            document.getElementById('nodePort').value = '';
+            document.getElementById('nodeRemark').value = '';
+            document.getElementById('nodeExtra').value = '';
+        }
+        
+        function editNode(index) {
+            const node = nodes[index];
+            document.getElementById('nodeAddress').value = node.address || '';
+            document.getElementById('nodePort').value = node.port || '';
+            document.getElementById('nodeRemark').value = node.remark || '';
+            document.getElementById('nodeExtra').value = JSON.stringify(node.extra || {});
+        }
+        
+        function deleteNode(index) {
+            if (confirm('آیا این نود حذف شود؟')) {
+                nodes.splice(index, 1);
+                renderNodes();
+                saveConfig();
+            }
+        }
+        
+        function saveNode() {
+            const address = document.getElementById('nodeAddress').value;
+            const port = document.getElementById('nodePort').value;
+            const remark = document.getElementById('nodeRemark').value;
+            const extra = document.getElementById('nodeExtra').value;
+            
+            if (!address) return showToast('آدرس نود را وارد کنید', 'error');
+            
+            let nodeData = { address, port: parseInt(port), remark };
+            try { if (extra) nodeData.extra = JSON.parse(extra); } catch {}
+            
+            const existingIndex = nodes.findIndex(n => n.address === address);
+            if (existingIndex >= 0) nodes[existingIndex] = nodeData;
+            else nodes.push(nodeData);
+            
+            config.节点 = nodes;
+            renderNodes();
+            showToast('نود ذخیره شد', 'success');
+        }
+        
+        async function saveConfig() {
+            showSaveIndicator('در حال ذخیره...');
+            
+            config.UUID = document.getElementById('configUUID').value;
+            config.HOST = [document.getElementById('configHOST').value];
+            config.协议类型 = document.getElementById('configProtocol').value;
+            config.TLS类型 = document.getElementById('configTLS').value;
+            config.SNI = document.getElementById('configSNI').value;
+            config.FallBack = document.getElementById('configFallbackSNI').value;
+            config.公钥 = document.getElementById('configPublicKey').value;
+            config.路径 = document.getElementById('configPath').value;
+            
+            if (!config.优选订阅生成) config.优选订阅生成 = {};
+            config.优选订阅生成.SUBNAME = document.getElementById('subName').value;
+            config.优选订阅生成.SUBUpdateTime = parseInt(document.getElementById('subUpdateTime').value);
+            
+            try {
+                const res = await fetch('/admin/config.json', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                if (res.ok) {
+                    showSaveIndicator('ذخیره شد ✓');
+                    showToast('تنظیمات با موفقیت ذخیره شد', 'success');
+                } else {
+                    throw new Error('Save failed');
+                }
+            } catch (err) {
+                showSaveIndicator('خطا!');
+                showToast('خطا در ذخیره تنظیمات', 'error');
+            }
+        }
+        
+        async function saveCF() {
+            await saveConfig();
+            showToast('تنظیمات کلادفلر ذخیره شد', 'success');
+        }
+        
+        async function saveTelegram() {
+            config.TG = {
+                BotToken: document.getElementById('tgBotToken').value,
+                ChatID: document.getElementById('tgChatID').value,
+                Enabled: document.getElementById('tgEnabled').checked,
+                NotifyLogin: document.getElementById('tgNotifyLogin').checked,
+                NotifyTraffic: document.getElementById('tgNotifyTraffic').checked
+            };
+            
+            try {
+                await fetch('/admin/tg.json', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config.TG)
+                });
+                showToast('تنظیمات تلگرام ذخیره شد', 'success');
+            } catch (err) {
+                showToast('خطا در ذخیره', 'error');
+            }
+        }
+        
+        async function saveAdvanced() {
+            config.TLS分片 = document.getElementById('tlsFragment').value;
+            config.启用0RTT = document.getElementById('enable0RTT').checked;
+            config.启用SOCKS5 = document.getElementById('enableSocks5').checked;
+            await saveConfig();
+            showToast('تنظیمات پیشرفته ذخیره شد', 'success');
+        }
+        
+        function resetConfig() {
+            if (confirm('آیا مطمئن هستید؟ تمام تنظیمات به حالت پیش‌فرض برمی‌گردد.')) {
+                fetch('/admin/init', { method: 'POST' }).then(() => {
+                    showToast('تنظیمات بازنشانی شد', 'success');
+                    loadConfig();
+                });
+            }
+        }
+        
+        function showSaveIndicator(text) {
+            const el = document.getElementById('saveIndicator');
+            el.innerHTML = text.includes('در حال') ? 
+                '<span class="loading-spinner"></span>' + text :
+                '<i class="fas fa-check-circle"></i> ' + text;
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function copyToClipboard(id) {
+            const text = document.getElementById(id).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('کپی شد!', 'success');
+            });
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
