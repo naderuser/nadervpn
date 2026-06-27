@@ -8,6 +8,8 @@
 nadervpn/
 ├── index.html          # صفحه اصلی
 ├── noADMIN.html        # صفحه خطای عدم تنظیم ADMIN
+├── worker.js           # Worker اصلی
+├── wrangler.toml.example # تنظیمات Worker
 ├── README.md           # این فایل
 └── admin/
     ├── index.html      # پنل مدیریت اصلی
@@ -16,32 +18,63 @@ nadervpn/
 
 ## 🚀 نصب
 
-### ۱. آپلود فایل‌ها به Cloudflare Pages
+### ۱. ساخت KV Namespace
 
-1. وارد پنل [Cloudflare Dashboard](https://dash.cloudflare.com/) شوید
-2. به بخش **Workers & Pages** بروید
-3. یک **New application** ایجاد کنید
-4. **Pages** را انتخاب کرده و پروژه جدید بسازید
-5. فولدر `nadervpn` را آپلود کنید
+1. وارد [Cloudflare Dashboard](https://dash.cloudflare.com/) شوید
+2. به **Workers & Pages** → **KV** بروید
+3. یک **Create namespace** بسازید
+4. یک **نام** بذارید (مثلاً `NaderVPN_Config`)
+5. **ID** رو کپی کنید
 
-### ۲. تنظیم متغیرهای محیطی
+### ۲. آپلود فایل‌ها به Cloudflare Pages
 
-در Worker خود این متغیرها را تنظیم کنید:
+1. به **Workers & Pages** بروید
+2. **Create application** → **Pages** → **Upload assets**
+3. فولدر `nadervpn` رو آپلود کنید
+4. آدرس Pages رو کپی کنید (مثلاً `https://nadervpn.pages.dev`)
 
-| متغیر | توضیحات |
-|-------|---------|
-| `ADMIN` | رمز عبور پنل مدیریت |
-| `KEY` | کلید رمزگذاری |
-| `UUID` | شناسه کاربر (اختیاری) |
-| `HOST` | دامنه Worker |
-| `PROXYIP` | آی‌پی پروکسی (اختیاری) |
+### ۳. ساخت Worker
 
-### ۳. تنظیم متغیر Pages
+```bash
+# نصب Wrangler
+npm install -g wrangler
 
-در تنظیمات Pages، متغیر محیطی `PAGES_STATIC` را تنظیم کنید:
+# ورود به حساب
+wrangler login
 
+# کپی فایل تنظیمات
+cp wrangler.toml.example wrangler.toml
+
+# ویرایش wrangler.toml
+# - KV_NAMESPACE_ID رو با ID از مرحله 1 تنظیم کنید
+# - ADMIN و KEY رو تنظیم کنید
+# - PAGES_STATIC رو با آدرس Pages از مرحله 2 تنظیم کنید
+
+# دیپلوی
+wrangler deploy
 ```
-PAGES_STATIC = https://your-pages-project.pages.dev
+
+### ۴. متغیرهای محیطی
+
+| متغیر | توضیحات | الزامی |
+|-------|---------|--------|
+| `ADMIN` | رمز عبور پنل مدیریت | ✅ |
+| `KEY` | کلید رمزگذاری | ✅ |
+| `HOST` | دامنه Worker | ✅ |
+| `UUID` | شناسه کاربر (اختیاری) | ❌ |
+| `PROXYIP` | آی‌پی پروکسی (اختیاری) | ❌ |
+| `PAGES_STATIC` | آدرس Pages | ✅ |
+| `DEBUG` | فعال‌سازی دیباگ (`true`) | ❌ |
+| `BEST_SUB` | اشتراک بهینه (`true`) | ❌ |
+
+### ۵. متغیر KV
+
+در `wrangler.toml` تنظیم کنید:
+
+```toml
+[[kv_namespaces]]
+binding = "KV"
+id = "YOUR_KV_NAMESPACE_ID"
 ```
 
 ## 📱 امکانات

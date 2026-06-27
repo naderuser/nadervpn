@@ -21,11 +21,31 @@ HOST = "your-worker.your-subdomain.workers.dev"
 # تعداد TCP کانکشن همزمان (اختیاری)
 # TCP并发拨号数 = "2"
 
-[[kv_namespaces]]
-binding = "NADER_KV"
-id = "your-kv-namespace-id"
+# آدرس صفحات استاتیک (Cloudflare Pages)
+# PAGES_STATIC = "https://your-pages.pages.dev"
 
-# اگر از R2 برای ذخیره لاگ استفاده می‌کنید:
+# آی‌پی‌های پروکسی (اختیاری - هر کدام با کاما)
+# PROXYIP = "162.159.192.10,172.64.147.20"
+
+# فعال‌سازی ریسولو DNS خودکار پروکسی
+# PROXYIP_RESOLVE = "true"
+
+# UUID دستی (اختیاری)
+# UUID = "your-uuid-here"
+
+#///////////////////////////////////////////////////////
+# KV Namespace - ذخیره تنظیمات
+#///////////////////////////////////////////////////////
+# ابتدا در Cloudflare Dashboard یک KV namespace بسازید
+# سپس ID آن را اینجا قرار دهید
+[[kv_namespaces]]
+binding = "KV"
+id = "YOUR_KV_NAMESPACE_ID_HERE"
+# title = "NaderVPN_Config"  # نام نمایشی
+
+#///////////////////////////////////////////////////////
+# R2 Storage - ذخیره لاگ‌ها (اختیاری)
+#///////////////////////////////////////////////////////
 # [[r2_buckets]]
-# binding = "NADER_R2"
+# binding = "R2"
 # bucket_name = "nadervpn-logs"
