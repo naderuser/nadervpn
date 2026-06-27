@@ -2,7 +2,13 @@
 // پنل مدیریت VPN با پشتیبانی کامل KV
 
 const Version = '2024-NaderVPN-2.0.0';
-const Pages静态页面 = 'YOUR_PAGES_URL_HERE'; // مثلاً: https://nadervpn.pages.dev
+
+// آدرس صفحات استاتیک - حتماً تنظیم کنید!
+// مثلاً: https://nadervpn.pages.dev
+const getPagesURL = (path) => {
+	const staticURL = globalThis.PAGES_STATIC || 'https://naderuser.github.io/nadervpn';
+	return `${staticURL}${path}`;
+};
 
 let config_JSON, 反代IP = '', 启用SOCKS5反代 = null, 启用SOCKS5全局反代 = false, 我的SOCKS5账号 = '', parsedSocks5Address = {};
 let 缓存SOCKS5白名单 = null, 缓存反代IP, 缓存反代解析数组, 缓存反代数组索引 = 0, 启用反代兜底 = true, 调试日志打印 = false;
@@ -97,8 +103,11 @@ export default {
 			
 			// صفحات استاتیک
 			if (!访问路径.startsWith('admin/') && 访问路径 !== 'login' && !访问路径.startsWith('check') && !访问路径.startsWith('video') && !访问路径.startsWith('sub') && !访问路径.startsWith('logout') && !访问路径.startsWith('panel') && !uuidRegex.test(访问路径)) {
-				if (!管理员密码) return fetch(Pages静态页面 + '/noADMIN').then(r => { const headers = new Headers(r.headers); headers.set('Cache-Control', 'no-store, no-cache, must-revalidate'); return new Response(r.body, { status: 404, headers }) });
-				if (访问路径 === '' || 访问路径 === '/') return fetch(Pages静态页面 + '/index.html');
+				if (!管理员密码) {
+								const fallbackResp = await fetch(getPagesURL('/noADMIN.html'));
+								return new Response(fallbackResp.body, { status: 404, headers: { 'Content-Type': 'text/html' } });
+							}
+				if (访问路径 === '' || 访问路径 === '/') return fetch(getPagesURL('/index.html'));
 				if (访问路径 === 'robots.txt') return new Response('User-agent: *\nDisallow:', { headers: { 'Content-Type': 'text/plain' } });
 				if (访问路径 === 'favicon.ico') return new Response('', { status: 204 });
 				
@@ -117,7 +126,7 @@ export default {
 							}
 						} catch {}
 					}
-					return fetch(Pages静态页面 + '/login');
+					return fetch(getPagesURL('/admin/login.html'));
 				}
 				
 				// پنل ادمین
@@ -273,7 +282,7 @@ export default {
 						return new Response(JSON.stringify(request.cf), { headers: { 'Content-Type': 'application/json' } });
 					}
 					
-					return fetch(Pages静态页面 + '/admin' + url.search);
+					return fetch(getPagesURL('/admin/index.html' + url.search));
 				}
 				
 				// خروج و پاک کردن کوکی

@@ -22,7 +22,7 @@ HOST = "your-worker.your-subdomain.workers.dev"
 # TCP并发拨号数 = "2"
 
 # آدرس صفحات استاتیک (Cloudflare Pages)
-# PAGES_STATIC = "https://your-pages.pages.dev"
+PAGES_STATIC = "https://naderuser.github.io/nadervpn"
 
 # آی‌پی‌های پروکسی (اختیاری - هر کدام با کاما)
 # PROXYIP = "162.159.192.10,172.64.147.20"
